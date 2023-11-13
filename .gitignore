@@ -5,8 +5,8 @@
 /.pnp
 .pnp.js
 
-.env
-*.env
+
+
 .gitignore
 firebase
 *firebase
@@ -16,6 +16,8 @@ firebase
 # production
 /build
 
+
+.env
 # misc
 .DS_Store
 .env.local
