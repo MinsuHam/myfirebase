@@ -1,25 +1,63 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import PrivateRoute from './context/PrivateRoute'
+import { auth } from './firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
-function App() {
+import Main from './components/Main'
+import Login from './components/Login'
+import Register from './components/Register'
+import VerifyEmail from './components/VerifyEmail'
+import Header from './Layout/Header'
+import Profile from './components/Profile'
+import Upload from './components/Upload'
+import Bbs from './components/Bbs'
+
+const App = () => {
+   
+  const [ currentUser, setCurrentUser ] = useState(null);
+  const [ timeActive, setTimeActive ] = useState(false);
+
+  useEffect(()=>{
+    onAuthStateChanged( auth, (user) => {
+       setCurrentUser(user);
+    })
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <Router>
+       <AuthProvider value={{currentUser, timeActive, setTimeActive }}>
+          <Routes>
+            <Route exact path="/" element={
+                <PrivateRoute>
+                  <Header>
+                     <Main />
+                  </Header>            
+                </PrivateRoute>
+            } />
+            <Route path="/profile" element={
+                <PrivateRoute>
+                   <Header>
+                      <Profile />
+                   </Header>
+                </PrivateRoute>
+            }/>
+            <Route path="/login" element={
+               !currentUser?.emailVerified? <Login />
+               :<Navigate to="/" replace />
+            }/>
+            <Route path="/register" element={
+               !currentUser?.emailVerified? <Header><Register /></Header>
+               :<Navigate to="/" replace />
+            }/>
+            <Route path="/bbs" element={<Header><Bbs /></Header>}/>
+            <Route path="/upload" element={<Header><Upload /></Header>}/>
+            <Route path="/verify-email" element={<VerifyEmail/>}/>
+          </Routes>
+       </AuthProvider>
+    </Router>
+  )
 }
 
-export default App;
+export default App
